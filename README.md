@@ -7,28 +7,31 @@ No #ifdef soup, no clever algorithms, no complex variables, just basic stuff tha
 
 This library is targeted for embedded applications where its common to have custom data I/O ports (UART, I2C, SPI...), so the included functions simply operate on a buffer, that can be received/trasmitted in the most suitable way. The available functions are:
 
-### `int usprintf(char* buffer, const char* format, ...)`
+### usprintf
+
+**`int usprintf(char* buffer, const char* format, ...)`**
 **Description:**
 Prints formatted output to a string.
 
 **Parameters:**
-**`char* buffer`** Buffer where the string will be stored.
-**`const char* format`** String to be printed including format specifiers.
-**`...`** Additional arguments required by the format specifiers.
+* **`char* buffer`** Buffer where the string will be stored.
+* **`const char* format`** String to be printed including format specifiers.
+* **`...`** Additional arguments required by the format specifiers.
 
 **Return value:**
 Lenght of the printed string not including the null character `'\0'`.
 
 <br>
 
-### `int usscanf(const char *str, const char *format, ...)`
+### usscanf
+**`int usscanf(const char *str, const char *format, ...)`**
 **Description:**
 Reads formatted input from a string.
 
 **Parameters:**
-**`char* str`** String containing data to be parsed.
-**`const char* format`** String containg format specifiers to match.
-**`...`** Additional arguments required by the format specifiers.
+* **`char* str`** String containing data to be parsed.
+* **`const char* format`** String containg format specifiers to match.
+* **`...`** Additional arguments required by the format specifiers.
 
 **Return value:**
 Number of retrieved fields. Returns `EOF` in case of failure.
@@ -53,3 +56,5 @@ It is possible to specify the precision only for floating point numbers.
 
 [^1]: In some architectures `long int` is equivalent to `int`.
 
+## Unit testing
+This project uses the CPPUTEST testing harness. First make sure you have installed `make`, `g++` and `autoconf`. Execute the `setup_ccputest.sh` to install the dependencies and patch some files. Then call `make test` from the root directory to run the tests.
