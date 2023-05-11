@@ -7,7 +7,7 @@ COMPONENT_NAME=tests
 CPPUTEST_OBJS_DIR=build
 CPPUTEST_LIB_DIR=build
 # project source files path
-#SRC_DIRS=$(PROJECT_DIR)
+SRC_DIRS=$(PROJECT_DIR)
 
 # project header files path
 INCLUDE_DIRS=$(PROJECT_DIR)
@@ -17,7 +17,8 @@ INCLUDE_DIRS+=$(CPPUTEST_HOME)/include
 
 ## specify where the test code is located
 TEST_SRC_DIRS=$(TEST_DIR)
-TEST_SRC_FILES=
+TEST_SRC_FILES= \
+$(PROJECT_DIR)/uprint.c
 
 ## what to call the test binary
 TEST_TARGET=test_runner

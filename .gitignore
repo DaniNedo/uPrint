@@ -1,2 +1,5 @@
+.vscode/
 Test/build/
 Test/cpputest/
+Test/test_runner
+Test/test_runner.txt
