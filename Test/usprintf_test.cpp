@@ -90,5 +90,3 @@ TEST(SprintfTestGroup, PrintFloat)
    STRCMP_EQUAL("1.2345", buffer); // Need to fix the precision round up
    LONGS_EQUAL(6, length);
 }
-
-

@@ -36,11 +36,9 @@
 #if USING_LONG_LONG
 typedef unsigned long long int	unsigned_value_t;
 typedef long long int 			signed_value_t;
-#define MAX_VALUE_LEN	21
 #else
 typedef unsigned long int		unsigned_value_t;
 typedef long int      			signed_value_t;
-#define MAX_VALUE_LEN	13
 #endif
 
 int upper_case;
@@ -155,7 +153,7 @@ static int _uvsnprintf(char* buffer, const size_t maxlen, const char* format, va
 
 			// Evaluate specifier
 			const char* p;
-			uint8_t base = 10;
+			uint8_t base = 10; // The default base is decimal
 
 			switch(*format) {
 				case 'X': 
@@ -172,9 +170,12 @@ static int _uvsnprintf(char* buffer, const size_t maxlen, const char* format, va
 					/* fall through */
 				case 'u':
 				// General case for unsigned values
+#if USING_LONG_LONG
 					if (flags & FLAGS_LONG_LONG) {
 						idx += print_integer(&buffer[idx], (unsigned_value_t)va_arg(va, unsigned long long int), base, flags);
-					} else if (flags & FLAGS_LONG) {
+					} else 
+#endif					
+					if (flags & FLAGS_LONG) {
 						idx += print_integer(&buffer[idx], (unsigned_value_t)va_arg(va, unsigned long int), base, flags);
 					} else {
 						idx += print_integer(&buffer[idx], (unsigned_value_t)va_arg(va, unsigned int), base, flags);
@@ -183,11 +184,14 @@ static int _uvsnprintf(char* buffer, const size_t maxlen, const char* format, va
 				case 'i': /* fall through */
 				case 'd': {
 				// General case for signed values
+#if USING_LONG_LONG
 					if (flags & FLAGS_LONG_LONG) {
 						const long long int value = va_arg(va, long long int);
 						flags |= value < 0 ? FLAGS_NEGATIVE : 0;
 						idx += print_integer(&buffer[idx], ABS_FOR_PRINTING(value), base, flags);
-					} else if (flags & FLAGS_LONG) {
+					} else
+#endif
+					if (flags & FLAGS_LONG) {
 						const long int value = va_arg(va, long int);
 						flags |= value < 0 ? FLAGS_NEGATIVE : 0;
 						idx += print_integer(&buffer[idx], ABS_FOR_PRINTING(value), base, flags);
@@ -235,88 +239,148 @@ int usprintf(char* buffer, const char* format, ...) {
   return ret;
 }
 
-#if 0
-#include <stdio.h>
-#include <stdarg.h>
-#include <stddef.h>
-#include <stdbool.h>
-
 #define is_space(c) (c == ' ' || c == '\t' || c == '\n')
 
-typedef enum {
-    INT = 0,
-    UNSIGNED_INT,
-    LONG_LONG_INT,
-    UNSIGNED_LONG_LONG_INT,
-	HEXADECIMAL,
-    FLOAT,
-    CHAR,
-    STRING
-} type_t;
+#define is_binary(c) (c == '0' || c == '1')
+#define is_octal(c) (c >= '0' && c <= '7')
+#define is_decimal(c) (c >= '0' && c <= '9')
+#define is_hex(c) (is_decimal(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'))
+#define char_to_hex(c) (c <= '9' ? c - '0' : ((c <= 'F' ? c - 'A' : (c <= 'f' ? c - 'a' : 0)) + 10U))
 
-static int match_pattern(const char *buffer, void *value, type_t type) {
-    char scratchpad[100];
-    int count = 0;
+unsigned_value_t string_to_uint(const char **buffer, uint8_t base, int *error) {
+	unsigned_value_t value = 0U;
+	*error = 0;
 
-    if (*buffer && buffer) {
-        switch(type) {
-            case CHAR:
-                *(char *)value = *buffer;
-                count = 1;
-                break;
-            case STRING:
-                while (*buffer && !is_space(*buffer)) {
-                    *(char *)value++ = *buffer++;
-                    count++;
-                }
-            default:
-                break;
-        }
-    }
+	// Skip all everything (including "-") until the first digit
+	while (1) {
+		if (**buffer == '\0') { *error = -1; return 0; }
+		if ((BASE_DECIMAL == base && is_decimal(**buffer)) ||
+			(BASE_HEX == base && is_hex(**buffer)) || 
+			(BASE_BINARY == base && is_binary(**buffer)) ||
+			(BASE_OCTAL == base && is_octal(**buffer))) {
+			break;
+		}
+		(*buffer)++;
+	}
 
-    return count;
+	switch (base) {
+		case BASE_BINARY:
+			while (is_binary(**buffer)) {
+				value = (value << 1U) + (unsigned_value_t)(*((*buffer)++) - '0');
+			}
+			break;
+		case BASE_OCTAL:
+			while (is_octal(**buffer)) {
+				value = (value << 3U) + (unsigned_value_t)(*((*buffer)++) - '0');
+			}
+			break;
+		case BASE_DECIMAL:
+			while (is_decimal(**buffer)) {
+				value = value * 10U + (unsigned_value_t)(*((*buffer)++) - '0');
+			}
+			break;
+		case BASE_HEX:
+			while (is_hex(**buffer)) {
+				value = (value << 4U) + (unsigned_value_t)(*((*buffer)++) - '0');// char_to_hex((unsigned_value_t)(*((*buffer)++)));
+			}
+			break;
+		default:
+			*error = -1;
+			return 0;
+	}
+
+	return value;
 }
 
 static int _vsnscanf(const char *buffer, const char *format, va_list va) {
-    unsigned int idx = 0;
-    unsigned int match_count = 0;
-    unsigned int match_result = 0;
+	if (buffer == NULL || format == NULL) return 0;
+    int match_count = 0;
 
-    while (*format && &buffer[idx]) {
+    while (*format && *buffer) {
+		int error = 0;
+
         if (is_space(*format)) {
             format++;
             continue;
         }
 
-        if (is_space(buffer[idx])) {
-            idx++;
+        if (is_space(*buffer)) {
+            buffer++;
             continue;
         }
 
         if (*format != '%') {
-            if (buffer[idx] != *format && *format != ' ') {
-                printf("ERR");
+            if (*buffer != *format) {
+                break;
             }
-            idx++;
+            buffer++;
             format++;
             continue;
         } else {
-            format++;
+			format++;
+
+			unsigned int flags = 0;
+
+			// Evaluate length
+			switch(*format) {
+				case 'l':
+					flags |= FLAGS_LONG;
+					format++;
+					if (*format == 'l') {
+						flags |= FLAGS_LONG_LONG;
+						format++;
+					}
+					break;
+				default:
+					break;
+			}
+
+			uint8_t base = BASE_DECIMAL; // Default base is decimal
 
             switch(*format) {
-                case 'c':
-                    match_result = match_pattern(&buffer[idx], va_arg(va, char*), CHAR);
-                    if (match_result) {
-                        match_count++;
-                        idx += match_result;
-                    }
+				case 'X': 
+					flags |= FLAGS_UPPERCASE;
+					/* fall through */
+				case 'x': 
+					base = BASE_HEX;
+					/* fall through */
+				case 'o':
+					base = base - BASE_DECIMAL ? base : BASE_OCTAL; // If its the default base change it
+					/* fall through */
+				case 'b':
+					base = base - BASE_DECIMAL ? base : BASE_BINARY; // If its the default base change it
+					/* fall through */
+				case 'u': {
+					// General case for unsigned values
+#if USING_LONG_LONG
+					if (flags & FLAGS_LONG_LONG) {
+						const long long unsigned int value = (long long unsigned int)string_to_uint(&buffer, base, &error);
+						if (error == 0) { *(va_arg(va, long long unsigned int *)) = value; match_count++; }
+					} else 
+#endif					
+					if (flags & FLAGS_LONG) {
+						const long unsigned int value = (long unsigned int)string_to_uint(&buffer, base, &error);
+						if (error == 0) { *(va_arg(va, long unsigned int *)) = value; match_count++; }
+					} else {
+						const unsigned int value = (unsigned int)string_to_uint(&buffer, base, &error);
+						if (error == 0) { *(va_arg(va, unsigned int *)) = value; match_count++;	}
+					}
+					break;
+				}
+				case 'c':
+					*(va_arg(va, char *))  = *buffer++;
+					match_count++;                
                     break;
-                case 's':
-                    match_result = match_pattern(&buffer[idx], va_arg(va, char*), STRING);
-                    if (match_result) {
-                        match_count++;
-                        idx += match_result;
-                    }
+                case 's': {
+					char *str = va_arg(va, char *);
+					if (*buffer && !is_space(*buffer)) {
+						match_count++;
+					}
+					while (*buffer && !is_space(*buffer)) {
+						*str++ = *buffer++;
+					}
+					break;
+				}
                 default:
                     break;
             }
@@ -324,7 +388,7 @@ static int _vsnscanf(const char *buffer, const char *format, va_list va) {
             format++;
         }
     }
-    return 0;
+    return match_count;
 }
 
 int usscanf(const char *str, const char *format, ...) {
@@ -334,5 +398,3 @@ int usscanf(const char *str, const char *format, ...) {
 	va_end(va);
 	return ret;
 }
-
-#endif

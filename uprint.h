@@ -13,9 +13,12 @@ extern "C" {
 #endif
 
 #include <stdarg.h>
-#include <stddef.h>
+
+#define USING_LONG_LONG 1
 
 int usprintf(char* buffer, const char* format, ...);
+
+int usscanf(const char *str, const char *format, ...);
 
 #ifdef __cplusplus
 }    // extern "C"
