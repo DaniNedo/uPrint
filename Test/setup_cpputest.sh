@@ -1,4 +1,4 @@
-git clone https://github.com/cpputest/cpputest.git
+# git clone https://github.com/cpputest/cpputest.git
 
 cd cpputest
 

@@ -78,4 +78,19 @@ TEST(SscanfTestGroup, ScanHex)
    items = usscanf(str,"%x", &n);
    LONGS_EQUAL(0x1234, n);
    LONGS_EQUAL(1, items);
+
+   char str_with_char[] = "1234abc";
+   n = 0;
+   items = usscanf(str_with_char,"%x", &n);
+   LONGS_EQUAL(0x1234abc, n);
+   LONGS_EQUAL(1, items);
+}
+
+TEST(SscanfTestGroup, ScanFloat)
+{
+   char str[] = "12.34";
+   float f;
+   items = usscanf(str,"%f", &f);
+   LONGS_EQUAL(12.34F, f);
+   LONGS_EQUAL(1, items);
 }

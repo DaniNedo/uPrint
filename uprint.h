@@ -14,6 +14,7 @@ extern "C" {
 
 #include <stdarg.h>
 
+#define USING_FLOAT 1
 #define USING_LONG_LONG 1
 
 int usprintf(char* buffer, const char* format, ...);
