@@ -55,15 +55,61 @@ typedef long int				signed_value_t;
 #define is_hex(c) (is_decimal(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'))
 #define char_to_hex(c) (c <= '9' ? (c) - '0' : ((c <= 'F' ? c - 'A' : (c <= 'f' ? c - 'a' : 0)) + 10))
 
-static unsigned_value_t string_to_uint(const char **buffer, uint8_t base, int *error) {
-	unsigned_value_t value = 0U;
-	*error = 0;
+// static unsigned_value_t string_to_uint(const char **buffer, uint8_t base, int *error) {
+// 	unsigned_value_t value = 0U;
+// 	*error = 0;
+
+// 	// Skip everything until the first digit
+// 	while (1) {
+// 		if (**buffer == '\0') {
+// 			*error = -1;
+// 			return 0;
+// 		}
+// 		if ((BASE_DECIMAL == base && is_decimal(**buffer)) ||
+// 			(BASE_HEX == base && is_hex(**buffer)) || 
+// 			(BASE_BINARY == base && is_binary(**buffer)) ||
+// 			(BASE_OCTAL == base && is_octal(**buffer))) {
+// 			break;
+// 		}
+// 		(*buffer)++;
+// 	}
+
+// 	switch (base) {
+// 		case BASE_BINARY:
+// 			while (is_binary(**buffer)) {
+// 				value = (value << 1U) + (unsigned_value_t)(*((*buffer)++) - '0');
+// 			}
+// 			break;
+// 		case BASE_OCTAL:
+// 			while (is_octal(**buffer)) {
+// 				value = (value << 3U) + (unsigned_value_t)(*((*buffer)++) - '0');
+// 			}
+// 			break;
+// 		case BASE_DECIMAL:
+// 			while (is_decimal(**buffer)) {
+// 				value = value * 10U + (unsigned_value_t)(*((*buffer)++) - '0');
+// 			}
+// 			break;
+// 		case BASE_HEX:
+// 			while (is_hex(**buffer)) {
+// 				value = (value << 4U) + (unsigned_value_t)char_to_hex(**buffer);
+// 				(*buffer)++;
+// 			}
+// 			break;
+// 		default:
+// 			*error = -1;
+// 			return 0;
+// 	}
+
+// 	return value;
+// }
+
+static int string_to_uint(const char **buffer, unsigned_value_t *value, uint8_t base) {
 
 	// Skip everything until the first digit
 	while (1) {
 		if (**buffer == '\0') {
-			*error = -1;
-			return 0;
+			return -1;
 		}
 		if ((BASE_DECIMAL == base && is_decimal(**buffer)) ||
 			(BASE_HEX == base && is_hex(**buffer)) || 
@@ -74,57 +120,59 @@ static unsigned_value_t string_to_uint(const char **buffer, uint8_t base, int *e
 		(*buffer)++;
 	}
 
+	*value = 0; // Clear the value for the following operations
+
 	switch (base) {
 		case BASE_BINARY:
 			while (is_binary(**buffer)) {
-				value = (value << 1U) + (unsigned_value_t)(*((*buffer)++) - '0');
+				*value = ((*value) << 1U) + (unsigned_value_t)(*((*buffer)++) - '0');
 			}
 			break;
 		case BASE_OCTAL:
 			while (is_octal(**buffer)) {
-				value = (value << 3U) + (unsigned_value_t)(*((*buffer)++) - '0');
+				*value = ((*value) << 3U) + (unsigned_value_t)(*((*buffer)++) - '0');
 			}
 			break;
 		case BASE_DECIMAL:
 			while (is_decimal(**buffer)) {
-				value = value * 10U + (unsigned_value_t)(*((*buffer)++) - '0');
+				*value = (*value) * 10U + (unsigned_value_t)(*((*buffer)++) - '0');
 			}
 			break;
 		case BASE_HEX:
 			while (is_hex(**buffer)) {
-				value = (value << 4U) + (unsigned_value_t)char_to_hex(**buffer);
+				*value = ((*value) << 4U) + (unsigned_value_t)char_to_hex(**buffer);
 				(*buffer)++;
 			}
 			break;
 		default:
-			*error = -1;
-			return 0;
+			return -1;
 	}
 
-	return value;
+	return 0;
 }
 
 #if USING_FLOAT
-static float string_to_float(const char **buffer, int *error) {
+static int string_to_float(const char **buffer, float *value) {
 	// Get the integral part
-	const unsigned_value_t integral_part = string_to_uint(buffer, BASE_DECIMAL, error);
-
-	if (*error != 0) {
-		return 0;
+	unsigned_value_t integral_part;
+	
+	if (string_to_uint(buffer, &integral_part, BASE_DECIMAL) == -1){
+		return -1;
 	}
 
-	float value = (float)integral_part;
+	*value = (float)integral_part;
 
 	// Test if there are decimals
 	if (**buffer != '.') {
-		return value; // No decimals
+		return 0; // No decimals
 	}
 
 	(*buffer)++;
 
 	// Get the fractional part
-	const unsigned_value_t fractional_part = string_to_uint(buffer, BASE_DECIMAL, error);
-	if (*error == 0) {
+	unsigned_value_t fractional_part;
+
+	if (string_to_uint(buffer, &fractional_part, BASE_DECIMAL) == 0) {
 		float decimals = (float)fractional_part;
 
 		// Keep dividing by 10 until the integral part becomes zero
@@ -132,10 +180,10 @@ static float string_to_float(const char **buffer, int *error) {
 			decimals /= 10.0F;
 		}
 		
-		value += decimals;
+		*value += decimals;
 	}
 
-	return value;
+	return 0;
 }
 #endif
 
@@ -144,7 +192,7 @@ static int _vsnscanf(const char *buffer, const char *format, va_list va) {
     int match_count = 0;
 
     while (*format && *buffer) {
-		int error = 0;
+		// int error = 0;
 
         if (is_space(*format)) {
             format++;
@@ -201,23 +249,23 @@ static int _vsnscanf(const char *buffer, const char *format, va_list va) {
 					// General case for unsigned values
 #if USING_LONG_LONG
 					if (flags & FLAGS_LONG_LONG) {
-						const long long unsigned int value = (long long unsigned int)string_to_uint(&buffer, base, &error);
-						if (error == 0) {
-							*(va_arg(va, long long unsigned int *)) = value;
+						unsigned_value_t value;
+						if (string_to_uint(&buffer, &value, base) == 0) {
+							*(va_arg(va, long long unsigned int *)) = (long long unsigned int)value;
 							match_count++;
 						}
 					} else 
 #endif					
 					if (flags & FLAGS_LONG) {
-						const long unsigned int value = (long unsigned int)string_to_uint(&buffer, base, &error);
-						if (error == 0) {
-							*(va_arg(va, long unsigned int *)) = value;
+						unsigned_value_t value;
+						if (string_to_uint(&buffer, &value, base) == 0) {
+							*(va_arg(va, long unsigned int *)) = (long unsigned int)value;
 							match_count++;
 						}
 					} else {
-						const unsigned int value = (unsigned int)string_to_uint(&buffer, base, &error);
-						if (error == 0) {
-							*(va_arg(va, unsigned int *)) = value;
+						unsigned_value_t value;
+						if (string_to_uint(&buffer, &value, base) == 0) {
+							*(va_arg(va, unsigned int *)) = (unsigned int)value;
 							match_count++;
 						}
 					}
@@ -234,23 +282,23 @@ static int _vsnscanf(const char *buffer, const char *format, va_list va) {
 					}
 #if USING_LONG_LONG
 					if (flags & FLAGS_LONG_LONG) {
-						const long long int value = (long long int)string_to_uint(&buffer, base, &error);
-						if (error == 0) {
-							*(va_arg(va, long long int *)) = flags & FLAGS_NEGATIVE ? -value : value;
+						unsigned_value_t value;
+						if (string_to_uint(&buffer, &value, base) == 0) {
+							*(va_arg(va, long long int *)) = flags & FLAGS_NEGATIVE ? -(long long int)value : (long long int)value;
 							match_count++;
 						}
 					} else 
 #endif					
 					if (flags & FLAGS_LONG) {
-						const long int value = (long int)string_to_uint(&buffer, base, &error);
-						if (error == 0) {
-							*(va_arg(va, long int *)) = flags & FLAGS_NEGATIVE ? -value : value;
+						unsigned_value_t value;
+						if (string_to_uint(&buffer, &value, base) == 0) {
+							*(va_arg(va, long int *)) = flags & FLAGS_NEGATIVE ? -(long int)value : (long int)value;
 							match_count++;
 						}
 					} else {
-						const int value = (int)string_to_uint(&buffer, base, &error);
-						if (error == 0) {
-							*(va_arg(va, int *)) = flags & FLAGS_NEGATIVE ? -value : value;
+						unsigned_value_t value;
+						if (string_to_uint(&buffer, &value, base) == 0) {
+							*(va_arg(va, int *)) = flags & FLAGS_NEGATIVE ? -(int)value : (int)value;
 							match_count++;
 						}
 					}
@@ -259,8 +307,8 @@ static int _vsnscanf(const char *buffer, const char *format, va_list va) {
 #if USING_FLOAT
 				case 'f': /* fall through */
 				case 'F': {
-					const float value = string_to_float(&buffer, &error);
-					if (error == 0) {
+					float value;
+					if (string_to_float(&buffer, &value) == 0) {
 						*(va_arg(va, float *)) = value;
 						match_count++;
 					}
@@ -373,10 +421,9 @@ static int _uvsnprintf(char* buffer, const size_t maxlen, const char* format, va
 
 			if (*format == '.') {
 				format++;
-				int error = 0;
-				precision = (unsigned int)string_to_uint(&format, BASE_DECIMAL, &error);
-				if (error) {
-					precision = DEFAULT_PRECISION;
+				unsigned_value_t temp;
+				if (string_to_uint(&format, &temp, BASE_DECIMAL) == 0) {
+					precision = (unsigned int)temp;
 				}
 			}
 
