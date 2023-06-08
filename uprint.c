@@ -55,55 +55,6 @@ typedef long int                signed_value_t;
 #define is_hex(c) (is_decimal(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'))
 #define char_to_hex(c) (c <= '9' ? (c) - '0' : ((c <= 'F' ? c - 'A' : (c <= 'f' ? c - 'a' : 0)) + 10))
 
-// static unsigned_value_t string_to_uint(const char **buffer, uint8_t base, int *error) {
-//  unsigned_value_t value = 0U;
-//  *error = 0;
-
-//  // Skip everything until the first digit
-//  while (1) {
-//      if (**buffer == '\0') {
-//          *error = -1;
-//          return 0;
-//      }
-//      if ((BASE_DECIMAL == base && is_decimal(**buffer)) ||
-//          (BASE_HEX == base && is_hex(**buffer)) || 
-//          (BASE_BINARY == base && is_binary(**buffer)) ||
-//          (BASE_OCTAL == base && is_octal(**buffer))) {
-//          break;
-//      }
-//      (*buffer)++;
-//  }
-
-//  switch (base) {
-//      case BASE_BINARY:
-//          while (is_binary(**buffer)) {
-//              value = (value << 1U) + (unsigned_value_t)(*((*buffer)++) - '0');
-//          }
-//          break;
-//      case BASE_OCTAL:
-//          while (is_octal(**buffer)) {
-//              value = (value << 3U) + (unsigned_value_t)(*((*buffer)++) - '0');
-//          }
-//          break;
-//      case BASE_DECIMAL:
-//          while (is_decimal(**buffer)) {
-//              value = value * 10U + (unsigned_value_t)(*((*buffer)++) - '0');
-//          }
-//          break;
-//      case BASE_HEX:
-//          while (is_hex(**buffer)) {
-//              value = (value << 4U) + (unsigned_value_t)char_to_hex(**buffer);
-//              (*buffer)++;
-//          }
-//          break;
-//      default:
-//          *error = -1;
-//          return 0;
-//  }
-
-//  return value;
-// }
-
 static int string_to_uint(const char **buffer, unsigned_value_t *value, uint8_t base) {
 
     // Skip everything until the first digit
