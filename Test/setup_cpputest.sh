@@ -1,4 +1,4 @@
-# git clone https://github.com/cpputest/cpputest.git
+git clone https://github.com/cpputest/cpputest.git
 
 cd cpputest
 
@@ -8,7 +8,7 @@ file='configure.ac'
 
 sed -i "s/$match/$insert\n$match/" $file
 
-sudo apt-get install autoconf
+sudo apt-get install make g++ autoconf
 
 ./autogen.sh
 ./configure

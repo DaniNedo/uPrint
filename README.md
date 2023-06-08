@@ -57,4 +57,6 @@ It is possible to specify the precision only for floating point numbers.
 [^1]: In some architectures `long int` is equivalent to `int`.
 
 ## Unit testing
-This project uses the CPPUTEST testing harness. First make sure you have installed `make`, `g++` and `autoconf`. Execute the `setup_ccputest.sh` to install the dependencies and patch some files. Then call `make test` from the root directory to run the tests.
+This project uses the CPPUTEST testing harness. Execute the `setup_ccputest.sh` to clone the CPPUTEST repository, patch some files, install the dependencies and compile. If there are errors during the installation make sure you have `make`, `g++` and `autoconf`.
+
+Then call `make test` from the root directory to run the tests.
