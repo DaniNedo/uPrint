@@ -48,33 +48,8 @@ int upper_case;
 
 #define GREATER_OF(_X, _Y)	((_X < _Y) ? _Y : _X)		
 
-<<<<<<< HEAD
-#define is_space(c) (c == ' ' || c == '\t' || c == '\n')
-#define is_binary(c) (c == '0' || c == '1')
-#define is_octal(c) (c >= '0' && c <= '7')
-#define is_decimal(c) (c >= '0' && c <= '9')
-#define is_hex(c) (is_decimal(c) || (c >= 'A' && c <= 'F') || (c >= 'a' && c <= 'f'))
-#define char_to_hex(c) (c <= '9' ? (c) - '0' : ((c <= 'F' ? c - 'A' : (c <= 'f' ? c - 'a' : 0)) + 10))
-
-static int string_to_uint(const char **buffer, unsigned_value_t *value, uint8_t base) {
-
-    // Skip everything until the first digit
-    while (1) {
-        if (**buffer == '\0') {
-            return -1;
-        }
-        if ((BASE_DECIMAL == base && is_decimal(**buffer)) ||
-            (BASE_HEX == base && is_hex(**buffer)) || 
-            (BASE_BINARY == base && is_binary(**buffer)) ||
-            (BASE_OCTAL == base && is_octal(**buffer))) {
-            break;
-        }
-        (*buffer)++;
-    }
-=======
 static char char_map[2][16] = {{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'},
                               {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}};
->>>>>>> f7a5c036080263e6594bc92bf90b12e724340693
 
 int print_integer(char *buffer, unsigned_value_t value, uint8_t base, uint32_t flags) {
 	int length = 0;
