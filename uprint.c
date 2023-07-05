@@ -335,8 +335,6 @@ static int print_float (float value, char *str, unsigned int precision) {
 
     int len = print_integer(str, ABS_FOR_PRINTING(integral_part), 10, value < 0 ? FLAGS_NEGATIVE : 0);
 
-    //precision = precision ? precision : 6; // We take care of this externally
-
     str[len++] = '.';
 
     while (precision--) {
@@ -367,15 +365,19 @@ static int _uvsnprintf(char* buffer, const size_t maxlen, const char* format, va
             // Evaluate flags
             unsigned int flags = 0;
 
+#if USING_FLOAT // Not the best, but for now precision is only used for Float and if it is disabled we get a "unused-but-set-variable" warning 
             // Evaluate precision
             unsigned int precision = DEFAULT_PRECISION;
+#endif
 
             if (*format == '.') {
                 format++;
+#if USING_FLOAT
                 unsigned_value_t temp;
                 if (string_to_uint(&format, &temp, BASE_DECIMAL) == 0) {
                     precision = (unsigned int)temp;
                 }
+#endif
             }
 
             // Evaluate length
