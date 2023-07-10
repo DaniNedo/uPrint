@@ -23,5 +23,8 @@ $(PROJECT_DIR)/uprint.c
 ## what to call the test binary
 TEST_TARGET=test_runner
 
+## add custom flags
+CPPUTEST_CFLAGS+=-DUSING_FLOAT=1 -DUSING_LONG_LONG=1
+
 #run MakefileWorker.mk with the variables defined here
 include $(CPPUTEST_HOME)/build/MakefileWorker.mk

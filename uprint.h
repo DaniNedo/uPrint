@@ -14,8 +14,13 @@ extern "C" {
 
 #include <stdarg.h>
 
-#define USING_FLOAT 1
-#define USING_LONG_LONG 1
+/*
+ * By default Float and Unsigned Long Long Int are not supported,
+ * you can enable them by (preferrebly) adding these definitions
+ * to your build flags, however uncommenting here also works.
+ */
+// #define USING_FLOAT 1
+// #define USING_LONG_LONG 1
 
 int usprintf(char* buffer, const char* format, ...);
 
