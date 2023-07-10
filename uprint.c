@@ -314,7 +314,7 @@ static int print_integer(char *buffer, unsigned_value_t value, uint8_t base, uin
         if (digit <= 9) { // digit cannot be negative so no need to test if greater than or equal to zero
             scratch_pad[scratch_len++] = (char)(digit + '0');
         } else if (digit <= 0x0F) { // if we are here we know that the digit is greater than or equal to ten
-            scratch_pad[scratch_len++] = (char)(digit + ((flags & FLAGS_UPPERCASE) ? 'A' : 'a'));
+            scratch_pad[scratch_len++] = (char)(digit + ((flags & FLAGS_UPPERCASE) ? 'A' : 'a') - 10);
         } else { // if bigger than 0x0F then it is an error
             scratch_len = 0;
             length = 0;

@@ -56,7 +56,7 @@ TEST(SprintfTestGroup, PrintInt)
    int pos = 1234;
    length = usprintf(buffer, "%d", pos);
    STRCMP_EQUAL("1234", buffer);
-   LONGS_EQUAL(4, length);   
+   LONGS_EQUAL(4, length);
 
    int neg = -1234;
    length = usprintf(buffer, "%d", neg);
@@ -72,6 +72,18 @@ TEST(SprintfTestGroup, PrintInt)
    length = usprintf(buffer, "%d", int_min);
    STRCMP_EQUAL("-2147483648", buffer);
    LONGS_EQUAL(11, length);
+}
+
+TEST(SprintfTestGroup, PrintHex)
+{
+   unsigned num = 0xDEADBEEF;
+   length = usprintf(buffer, "%X", num);
+   STRCMP_EQUAL("DEADBEEF", buffer);
+   LONGS_EQUAL(8, length);
+
+   length = usprintf(buffer, "%x", num);
+   STRCMP_EQUAL("deadbeef", buffer);
+   LONGS_EQUAL(8, length);   
 }
 
 TEST(SprintfTestGroup, PrintFloat)
