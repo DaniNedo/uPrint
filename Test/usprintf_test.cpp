@@ -35,9 +35,14 @@ TEST(SprintfTestGroup, PrintString)
 
 TEST(SprintfTestGroup, PrintUnsignedInt)
 {
-   unsigned int pos = 1234;
+   unsigned int zero = 0;
+   length = usprintf(buffer, "%u", zero);
+   STRCMP_EQUAL("0", buffer);
+   LONGS_EQUAL(1, length);
+
+   unsigned int pos = 1230;
    length = usprintf(buffer, "%u", pos);
-   STRCMP_EQUAL("1234", buffer);
+   STRCMP_EQUAL("1230", buffer);
    LONGS_EQUAL(4, length);
 
    unsigned int uint_max = UINT_MAX;

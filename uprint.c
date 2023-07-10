@@ -298,9 +298,6 @@ int usscanf(const char *str, const char *format, ...) {
     return ret;
 }
 
-static char char_map[2][16] = {{'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'},
-                              {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'}};
-
 static int print_integer(char *buffer, unsigned_value_t value, uint8_t base, uint32_t flags) {
     int length = 0;
 
@@ -309,14 +306,22 @@ static int print_integer(char *buffer, unsigned_value_t value, uint8_t base, uin
     }
 
     // Store the value in reverse order
-    int letter_case = (flags & FLAGS_UPPERCASE) ? 1 : 0;
     char scratch_pad[25] = {0};
     int scratch_len = 0;
     
-    while (value) {
-        scratch_pad[scratch_len++] = char_map[letter_case][value % (unsigned_value_t)base];
+    do {
+        unsigned_value_t digit = value % (unsigned_value_t)base;
+        if (digit <= 9) { // digit cannot be negative so no need to test if greater than or equal to zero
+            scratch_pad[scratch_len++] = (char)(digit + '0');
+        } else if (digit <= 0x0F) { // if we are here we know that the digit is greater than or equal to ten
+            scratch_pad[scratch_len++] = (char)(digit + ((flags & FLAGS_UPPERCASE) ? 'A' : 'a'));
+        } else { // if bigger than 0x0F then it is an error
+            scratch_len = 0;
+            length = 0;
+            break;
+        }
         value /= (unsigned_value_t)base;
-    }
+    } while (value);
 
     // Copy the value reversign the order
     while (scratch_len) {
