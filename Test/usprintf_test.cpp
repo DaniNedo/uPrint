@@ -8,7 +8,22 @@ TEST_GROUP(SprintfTestGroup)
 {
    int length = 0;
    char buffer[BUFFER_SIZE] = {1}; // Fill with stuff to test the null terminator
+
+   int test_usprintf(char* test_buffer, const char* test_format, ...) {
+      va_list test_va;
+      va_start(test_va, test_format);
+      const int test_ret = uvsnprintf(test_buffer, test_format, test_va);
+      va_end(test_va);
+      return test_ret;
+   }
 };
+
+TEST(SprintfTestGroup, PrintVaList)
+{
+   length = test_usprintf(buffer, "Hello, world!");
+   STRCMP_EQUAL("Hello, world!", buffer);
+   LONGS_EQUAL(13, length);
+}
 
 TEST(SprintfTestGroup, PrintSimpleText)
 {

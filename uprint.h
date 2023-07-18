@@ -22,6 +22,8 @@ extern "C" {
 // #define USING_FLOAT 1
 // #define USING_LONG_LONG 1
 
+int uvsnprintf(char* buffer, const char* format, va_list va);
+
 int usprintf(char* buffer, const char* format, ...);
 
 int usscanf(const char *str, const char *format, ...);

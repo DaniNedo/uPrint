@@ -481,6 +481,10 @@ static int _uvsnprintf(char* buffer, const size_t maxlen, const char* format, va
     return idx;
 }
 
+int uvsnprintf(char* buffer, const char* format, va_list va) {
+    return _uvsnprintf(buffer, (size_t)-1, format, va);
+}
+
 int usprintf(char* buffer, const char* format, ...) {
   va_list va;
   va_start(va, format);
