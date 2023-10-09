@@ -10,6 +10,7 @@ This library is targeted for embedded applications where its common to have cust
 ### usprintf
 
 **`int usprintf(char* buffer, const char* format, ...)`**
+
 **Description:**
 Prints formatted output to a string.
 
@@ -19,12 +20,26 @@ Prints formatted output to a string.
 * **`...`** Additional arguments required by the format specifiers.
 
 **Return value:**
-Lenght of the printed string not including the null character `'\0'`.
+Length of the printed string not including the null character `'\0'`.
 
-<br>
+### uvsnprintf
+
+**`int uvsnprintf(char* buffer, const char* format, va_list va)`**
+
+**Description:**
+Prints formatted output to a string. Useful for implementing custom printf-like functions.
+
+**Parameters:**
+* **`char* buffer`** Buffer where the string will be stored.
+* **`const char* format`** String to be printed including format specifiers.
+* **`va_list va`** List arguments required by the format specifiers.
+
+**Return value:**
+Length of the printed string not including the null character `'\0'`.
 
 ### usscanf
 **`int usscanf(const char *str, const char *format, ...)`**
+
 **Description:**
 Reads formatted input from a string.
 
@@ -51,8 +66,8 @@ In order to keep a small memory footprint the uPrint uses a reduces set of forma
 * **`%c`** Single character (`char`)
 * **`%s`** Null terminated character array (`char*`)
 
-It is possible to specify the precision only for floating point numbers.
-* **`%.*f`** where `*` is the number of decimal places. If no precision is specified it defaults to 6.
+It is possible to specify the precision for floating point numbers (number of decimals) and strings (number of characters).
+* **`%.[decimal_places][f,s]`**. The asterisk **`*`** character can be used to specify a variable precision. If precision is not specified or is not valid it defaults to 6. Precisions higher than 7 may produce errors.
 
 [^1]: In some architectures `long int` is equivalent to `int`.
 

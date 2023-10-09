@@ -32,6 +32,22 @@ TEST(SprintfTestGroup, PrintSimpleText)
    LONGS_EQUAL(13, length);
 }
 
+TEST(SprintfTestGroup, OverwriteText)
+{
+   char scratch_buffer[] = "Hello, world!";
+   length = usprintf(scratch_buffer, "Bye");
+   STRCMP_EQUAL("Bye", scratch_buffer);
+   LONGS_EQUAL(3, length);
+}
+
+TEST(SprintfTestGroup, EmptyText)
+{
+   char scratch_buffer[] = "Hello, world!";
+   length = usprintf(scratch_buffer, "");
+   STRCMP_EQUAL("", scratch_buffer);
+   LONGS_EQUAL(0, length);
+}
+
 TEST(SprintfTestGroup, PrintChar)
 {
    char c = 'A';
@@ -46,6 +62,26 @@ TEST(SprintfTestGroup, PrintString)
    length = usprintf(buffer, "%s", str);
    STRCMP_EQUAL(str, buffer);
    LONGS_EQUAL(13, length);
+}
+
+TEST(SprintfTestGroup, PrintTruncatedString)
+{
+   char str[] = "Hello, world!";
+   length = usprintf(buffer, "%.5s", str);
+   STRCMP_EQUAL("Hello", buffer);
+   LONGS_EQUAL(5, length);
+
+   length = usprintf(buffer, "%.*s", 12, str);
+   STRCMP_EQUAL("Hello, world", buffer);
+   LONGS_EQUAL(12, length);
+}
+
+TEST(SprintfTestGroup, PrintStringNoValidPrecision)
+{
+   char str[] = "123456789";
+   length = usprintf(buffer, "%.xs", str);
+   STRCMP_EQUAL("123456", buffer);
+   LONGS_EQUAL(6, length);
 }
 
 TEST(SprintfTestGroup, PrintUnsignedInt)
@@ -121,4 +157,16 @@ TEST(SprintfTestGroup, PrintFloat)
    length = usprintf(buffer, "%.4f", pre);
    STRCMP_EQUAL("1.2345", buffer); // Need to fix the precision round up
    LONGS_EQUAL(6, length);
+
+   length = usprintf(buffer, "%.xf", pre); // Check that when the precision is wrong it defaults to 6
+   STRCMP_EQUAL("1.234567", buffer);
+   LONGS_EQUAL(8, length);
+
+   length = usprintf(buffer, "%.xf,%f", pre, pos); // Check if with a bad precision, the rest of the string is parsed ok
+   STRCMP_EQUAL("1.234567,3.140000", buffer);
+   LONGS_EQUAL(17, length);
+   
+   length = usprintf(buffer, "%.*f", 3, pre); // Check variable precision
+   STRCMP_EQUAL("1.234", buffer); 
+   LONGS_EQUAL(5, length);
 }

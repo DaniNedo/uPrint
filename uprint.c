@@ -334,7 +334,7 @@ static int print_integer(char *buffer, unsigned_value_t value, uint8_t base, uin
 }
 
 #if USING_FLOAT
-static int print_float (float value, char *str, unsigned int precision) {
+static int print_float (float value, char *str, unsigned_value_t precision) {
     int integral_part = (int)value;
     float fractional_part = value;
 
@@ -370,19 +370,19 @@ static int _uvsnprintf(char* buffer, const size_t maxlen, const char* format, va
             // Evaluate flags
             unsigned int flags = 0;
 
-#if USING_FLOAT // Not the best, but for now precision is only used for Float and if it is disabled we get a "unused-but-set-variable" warning 
             // Evaluate precision
-            unsigned int precision = DEFAULT_PRECISION;
-#endif
+            unsigned_value_t precision = DEFAULT_PRECISION;
 
             if (*format == '.') {
+                flags |= FLAGS_PRECISION;
                 format++;
-#if USING_FLOAT
-                unsigned_value_t temp;
-                if (string_to_uint(&format, &temp, BASE_DECIMAL) == 0) {
-                    precision = (unsigned int)temp;
+
+                if (*format == '*') { // Check if presion is variable
+                    precision = (unsigned_value_t)va_arg(va, unsigned int);
+                    format++;
+                } else {
+                    string_to_uint(&format, &precision, BASE_DECIMAL);
                 }
-#endif
             }
 
             // Evaluate length
@@ -465,7 +465,11 @@ static int _uvsnprintf(char* buffer, const size_t maxlen, const char* format, va
                         break;
                     }
                     while(*p) {
-                        buffer[idx++] = *p++;
+                        if ((flags & FLAGS_PRECISION) ? precision : 1) {
+                            buffer[idx++] = *p;
+                            precision--;
+                        }
+                        p++;
                     }
                     break;
                 case '%':
