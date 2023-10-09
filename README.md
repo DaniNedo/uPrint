@@ -52,7 +52,7 @@ Reads formatted input from a string.
 Number of retrieved fields. Returns `EOF` in case of failure.
 
 ## Format specifiers
-In order to keep a small memory footprint the uPrint uses a reduces set of format specifiers:
+In order to keep a small memory footprint the uPrint uses a reduced set of format specifiers:
 
 * **`%d`** Signed integer number (`int`)
 * **`%ld`** Long signed integer number (`long int`)[^1]
@@ -67,7 +67,7 @@ In order to keep a small memory footprint the uPrint uses a reduces set of forma
 * **`%s`** Null terminated character array (`char*`)
 
 It is possible to specify the precision for floating point numbers (number of decimals) and strings (number of characters).
-* **`%.[decimal_places][f,s]`**. The asterisk **`*`** character can be used to specify a variable precision. If precision is not specified or is not valid it defaults to 6. Precisions higher than 7 may produce errors.
+* **`%.[decimal_places][f,s]`**. The asterisk **`*`** character can be used to specify a variable precision. If precision is not specified or is not valid it defaults to 6. Precisions higher than 7 may produce errors for floating point numbers.
 
 [^1]: In some architectures `long int` is equivalent to `int`.
 
